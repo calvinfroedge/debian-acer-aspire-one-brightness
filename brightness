@@ -1,0 +1,61 @@
+#!/bin/bash
+
+function usage()
+{
+	echo "Usage: brightness <u|d> (u = up / d = down)"
+}
+
+function brightness()
+{
+	display=$(xrandr -q | grep ' connected' |  head -n 1 | cut -d ' ' -f1)
+	xrandr --output $display --brightness $1
+}
+
+function get_current()
+{
+	xrandr --verbose | grep -i brightness | cut -f2 -d ' '
+}
+
+current=$(get_current)
+
+function increase()
+{
+	comp=$(echo "$current > 0.9" | bc)
+
+	if [ $comp = "0" ] ; then
+		new_brightness=$(echo "$current + 0.1" | bc)
+		brightness $new_brightness
+	else
+		brightness 1
+	fi
+}
+
+function decrease()
+{
+	comp=$(echo "$current < 0.1" | bc)
+
+	if [ $comp = "0" ] ; then
+		new_brightness=$(echo "$current - 0.1" | bc)
+		brightness $new_brightness
+	else
+		brightness 0
+	fi
+}
+
+if [ $# = 0 ]; then
+	usage
+	exit 0
+fi
+
+if [ $1 = "up" ]; then
+		increase
+    exit 0
+fi
+
+if [ $1 = "down" ]; then
+		decrease
+    exit 0
+fi
+
+usage
+exit 0
